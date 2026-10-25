@@ -146,8 +146,8 @@ private func onWallDialog(_ user: UnsafeMutableRawPointer?) {
 
 func registerWindowCommand(_ id: UInt32) {
     CAD_RegisterCommand("swalldlg", "벽 대화상자(Swift)", onWallDialog, nil, id)
-    CAD_AddUiItem(0, "건축(Swift)", "벽 대화상자…", "swalldlg", "", id)
-    CAD_AddUiItem(3, "건축(Swift)/벽체", "대화상자", "swalldlg", "", id)
+    CAD_AddUiItem(0, "건축(Swift)", "벽 대화상자…", "swalldlg", "", id, nil)
+    CAD_AddUiItem(3, "건축(Swift)/벽체", "대화상자", "swalldlg", "", id, nil)
 }
 
 func closeWindowIfOpen() {

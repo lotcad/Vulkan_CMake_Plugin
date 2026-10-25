@@ -94,7 +94,8 @@ namespace {
         int changed = 0;
         for (unsigned int id : ids) {
             char type[32] = {}, data[128] = {};
-            if (!CAD_HasPluginTag(id)) continue;
+            bool tagged = false;   // 결과 코드 + 출력 — 딱지 없는 객체는 false
+            if (CAD_HasPluginTag(id, &tagged) != CAD_OK || !tagged) continue;
             CAD_GetPluginTagType(id, type, sizeof(type));
             if (std::strcmp(type, "wall") != 0) continue;
             CAD_GetPluginTagData(id, data, sizeof(data));
@@ -153,32 +154,32 @@ LOT_PLUGIN_ABI_EXPORT bool CAD_PluginLoad(unsigned int pluginId) {
     if (CAD_RegisterCommand("tower",     "탑 쌓기",     &onTower,     nullptr, g_id) != CAD_OK) return false;
     if (CAD_RegisterCommand("wallthick", "벽 두께 x2",  &onWallThick, nullptr, g_id) != CAD_OK) return false;
 
-    CAD_AddUiItem(0, "건축", "벽 만들기",  "wall",      "", g_id);
-    CAD_AddUiItem(0, "건축", "벽 두께 x2", "wallthick", "", g_id);
-    CAD_AddUiItem(0, "건축", "탑 쌓기",    "tower",     "", g_id);
-    CAD_AddUiItem(1, "건축", "",           "",          "", g_id);
-    CAD_AddUiItem(0, "건축/도구", "전체 보기", "zoom", "", g_id);
+    CAD_AddUiItem(0, "건축", "벽 만들기",  "wall",      "", g_id, nullptr);
+    CAD_AddUiItem(0, "건축", "벽 두께 x2", "wallthick", "", g_id, nullptr);
+    CAD_AddUiItem(0, "건축", "탑 쌓기",    "tower",     "", g_id, nullptr);
+    CAD_AddUiItem(1, "건축", "",           "",          "", g_id, nullptr);
+    CAD_AddUiItem(0, "건축/도구", "전체 보기", "zoom", "", g_id, nullptr);
 
-    CAD_AddUiItem(2, "건축/벽체", "벽",     "wall",      "", g_id);
-    CAD_AddUiItem(2, "건축/벽체", "두께x2", "wallthick", "", g_id);
+    CAD_AddUiItem(2, "건축/벽체", "벽",     "wall",      "", g_id, nullptr);
+    CAD_AddUiItem(2, "건축/벽체", "두께x2", "wallthick", "", g_id, nullptr);
 
     // 리본(kind 3) — 경로 "탭/그룹". 메뉴바 바로 아래에 가로로 눕는다.
-    CAD_AddUiItem(3, "건축/벽체", "벽",     "wall",      "", g_id);
-    CAD_AddUiItem(3, "건축/벽체", "두께x2", "wallthick", "", g_id);
-    CAD_AddUiItem(3, "건축/기타", "탑",     "tower",     "", g_id);
-    CAD_AddUiItem(3, "보기/화면", "전체보기", "zoom",    "", g_id);
+    CAD_AddUiItem(3, "건축/벽체", "벽",     "wall",      "", g_id, nullptr);
+    CAD_AddUiItem(3, "건축/벽체", "두께x2", "wallthick", "", g_id, nullptr);
+    CAD_AddUiItem(3, "건축/기타", "탑",     "tower",     "", g_id, nullptr);
+    CAD_AddUiItem(3, "보기/화면", "전체보기", "zoom",    "", g_id, nullptr);
 
     // 패널(kind 4) — 경로는 도킹 힌트("left"/"right"/"bottom").
     // ⚠️ 내용을 그리려면 CAD_SetOnDrawPanel + 엔진과 같은 ImGui 를 컴파일해 넣어야 한다.
     //    이 예제는 ImGui 를 안 들이므로 창만 뜨고 안내 문구가 나온다.
     //    값 편집만 필요하면 위의 CAD_AddEntityProperty(특성창)가 이 제약을 전부 피한다.
-    CAD_AddUiItem(4, "right", "벽 도구", "", "", g_id);
+    CAD_AddUiItem(4, "right", "벽 도구", "", "", g_id, nullptr);
 
     // 특성창에 벽의 값을 노출한다 — 플러그인은 UI 를 그리지 않고 "무엇이 있는지" 만 말한다.
     // 값은 딱지 data 의 JSON 키와 같은 이름이어야 엔진이 찾는다.
-    CAD_AddEntityProperty(kOwner, "wall", "length", "길이", 0, 0.1f, 20.0f, g_id);
-    CAD_AddEntityProperty(kOwner, "wall", "thick",  "두께", 0, 0.05f, 2.0f,  g_id);
-    CAD_AddEntityProperty(kOwner, "wall", "height", "높이", 0, 0.1f, 10.0f,  g_id);
+    CAD_AddEntityProperty(kOwner, "wall", "length", "길이", 0, 0.1,  20.0, g_id);
+    CAD_AddEntityProperty(kOwner, "wall", "thick",  "두께", 0, 0.05, 2.0,  g_id);
+    CAD_AddEntityProperty(kOwner, "wall", "height", "높이", 0, 0.1,  10.0, g_id);
 
     // 열기 알림 — 우리 엔티티가 복원되면 정의를 돌려받는다.
     CAD_SetOnPluginEntityLoaded(&onEntityLoaded);

@@ -86,11 +86,12 @@ func makeWall(_ w: Wall) -> UInt32 {
 // ── 엔진에서 문자열 받아오기 ─────────────────────────────────────────────────
 // CAD_Get* 계열은 "buf 가 NULL 이면 글자 길이(끝 NUL 은 뺀 바이트 수)를 반환한다" 는 규약이다. 두 번 부르면
 // 길이를 넉넉히 잡을 필요가 없다 — 고정 버퍼로 자르는 C++ 예제보다 이쪽이 정확하다. 칸은 NUL 자리까지 + 1.
-func readString(_ get: (UnsafeMutablePointer<CChar>?, Int32) -> Int32) -> String {
+// 칸 수는 uint32_t(Swift UInt32), 반환은 int32_t — 음수 = 실패(딱지 없는 객체 CAD_E_NOT_FOUND 등).
+func readString(_ get: (UnsafeMutablePointer<CChar>?, UInt32) -> Int32) -> String {
     let need = get(nil, 0)
     guard need > 0 else { return "" }
     var buf = [CChar](repeating: 0, count: Int(need) + 1)
-    _ = get(&buf, need + 1)
+    guard get(&buf, UInt32(need) + 1) >= 0 else { return "" }
     return String(cString: buf)
 }
 
@@ -103,7 +104,8 @@ func selectedWalls() -> [(id: UInt32, wall: Wall)] {
     var ids = [UInt32](repeating: 0, count: Int(n))
     let got = Int(max(0, min(n, CAD_GetSelection(&ids, UInt32(n)))))
     for id in ids.prefix(got) {
-        guard CAD_HasPluginTag(id) else { continue }
+        var tagged = false   // 결과 코드(0 = CAD_OK) + 출력
+        guard CAD_HasPluginTag(id, &tagged) == 0, tagged else { continue }
         guard readString({ CAD_GetPluginTagType(id, $0, $1) }) == "wall" else { continue }
         guard let w = decode(readString({ CAD_GetPluginTagData(id, $0, $1) })) else { continue }
         out.append((id, w))
@@ -213,12 +215,13 @@ public func pluginLoad(_ id: UInt32) -> Bool {
           CAD_RegisterCommand("swallthick", "벽 두께 x2(Swift)", onWallThick, nil, id) == 0
     else { return false }
 
-    CAD_AddUiItem(0, "건축(Swift)", "벽 만들기", "swall", "", id)
-    CAD_AddUiItem(0, "건축(Swift)", "벽 두께 x2", "swallthick", "", id)
+    // 마지막 인자 = 새 항목 id(따로 지울 일이 없으면 nil — 언로드 때 엔진이 owner 로 지운다)
+    CAD_AddUiItem(0, "건축(Swift)", "벽 만들기", "swall", "", id, nil)
+    CAD_AddUiItem(0, "건축(Swift)", "벽 두께 x2", "swallthick", "", id, nil)
 
-    CAD_AddUiItem(2, "건축(Swift)/벽체", "벽", "swall", "", id)
-    CAD_AddUiItem(3, "건축(Swift)/벽체", "벽", "swall", "", id)
-    CAD_AddUiItem(3, "건축(Swift)/벽체", "두께x2", "swallthick", "", id)
+    CAD_AddUiItem(2, "건축(Swift)/벽체", "벽", "swall", "", id, nil)
+    CAD_AddUiItem(3, "건축(Swift)/벽체", "벽", "swall", "", id, nil)
+    CAD_AddUiItem(3, "건축(Swift)/벽체", "두께x2", "swallthick", "", id, nil)
 
     // 자기 창 — macOS 에서만. 등록도 거기서 한다(WallWindow.swift).
     registerWindowCommand(id)

@@ -15,11 +15,14 @@ api/LotCAD_API.h       엔진에게 시킬 것들 (명령 200개 이상)
 ```cpp
 LOT_PLUGIN_ABI_EXPORT bool CAD_PluginLoad(unsigned int id) {
     CAD_RegisterCommand("wall", "벽 만들기", &onWall, nullptr, id);
-    CAD_AddUiItem(0, "건축", "벽 만들기", "wall", "", id);   // 메뉴
-    CAD_AddUiItem(2, "건축/벽체", "벽", "wall", "", id);      // 툴바
+    CAD_AddUiItem(0, "건축", "벽 만들기", "wall", "", id, nullptr);   // 메뉴
+    CAD_AddUiItem(2, "건축/벽체", "벽", "wall", "", id, nullptr);      // 툴바
     return true;
 }
 ```
+
+C API 는 **결과 코드**(`CAD_Status`, 0 = `CAD_OK`, 음수 = 실패 이유)를 돌려주고 값은 출력 인자로 받습니다.
+`CAD_AddUiItem` 의 마지막 인자는 새 항목 id(개별로 지울 일이 없으면 `nullptr`)입니다.
 
 `id` 는 엔진이 발급합니다. **등록할 때 `owner` 로 그 값을 써야** 언로드할 때 엔진이 묶어서
 지웁니다. 안 쓰면 DLL 이 내려간 뒤에도 등록이 남아 사라진 코드를 부르게 됩니다.
@@ -103,7 +106,10 @@ CMake 로 지으면 **찾을 수 있는 곳 전부에 자동으로 복사**합�
 ```cpp
 uint32_t id = 0;
 CAD_CreateMesh(pts, nPts, idx, nIdx, NULL, NULL, &id);  // 형상 — pts 는 CAD_GeVec3(월드), 법선 NULL = flat
-CAD_SetPluginTag(id, "HelloPlugin", "wall", "{...}");   // 정의는 플러그인만 해석
+CAD_SetPluginTag(id, "HelloPlugin", "wall", "{...}");   // 정의는 플러그인만 해석 — 반환 0 = CAD_OK
+
+bool tagged = false;                                     // 읽을 땐 결과 코드 + 출력
+if (CAD_HasPluginTag(id, &tagged) == CAD_OK && tagged) { /* CAD_GetPluginTagData(id, buf, cap) — 음수 = 실패 */ }
 ```
 
 객체가 메시라서 그리기·선택·이동·저장·내보내기가 전부 그대로 됩니다.
@@ -367,7 +373,7 @@ public func pluginAbiVersion() -> UInt32 { LOT_PLUGIN_ABI_VERSION }
 @_cdecl("CAD_PluginLoad")
 public func pluginLoad(_ id: UInt32) -> Bool {
     CAD_RegisterCommand("swall", "벽 만들기", onWall, nil, id)
-    CAD_AddUiItem(0, "건축(Swift)", "벽 만들기", "swall", "", id)
+    CAD_AddUiItem(0, "건축(Swift)", "벽 만들기", "swall", "", id, nil)
     return true
 }
 ```

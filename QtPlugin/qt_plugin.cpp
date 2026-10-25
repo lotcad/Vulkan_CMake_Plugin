@@ -268,14 +268,15 @@ LOT_PLUGIN_ABI_EXPORT bool CAD_PluginLoad(unsigned int pluginId) {
         return false;
 
     // UI 는 이름만 등록한다 — 여기엔 ImGui 도 Qt 도 안 쓴다.
-    CAD_AddUiItem(0, "건축(Qt)", "벽 만들기...", "qwall", "", g_id);
-    CAD_AddUiItem(2, "건축(Qt)/벽체", "벽...", "qwall", "", g_id);
-    CAD_AddUiItem(3, "건축(Qt)/벽체", "벽...", "qwall", "", g_id);
+    // 마지막 인자 = 새 항목 id(따로 지울 일이 없으면 nullptr — 언로드 때 엔진이 owner 로 지운다)
+    CAD_AddUiItem(0, "건축(Qt)", "벽 만들기...", "qwall", "", g_id, nullptr);
+    CAD_AddUiItem(2, "건축(Qt)/벽체", "벽...", "qwall", "", g_id, nullptr);
+    CAD_AddUiItem(3, "건축(Qt)/벽체", "벽...", "qwall", "", g_id, nullptr);
 
     // 특성창에서 값을 고칠 수 있게 — 이것도 Qt 없이 된다.
-    CAD_AddEntityProperty(kOwner, "wall", "length", "길이", 0, 0.1f, 100.0f, g_id);
-    CAD_AddEntityProperty(kOwner, "wall", "thick",  "두께", 0, 0.01f, 5.0f,  g_id);
-    CAD_AddEntityProperty(kOwner, "wall", "height", "높이", 0, 0.1f, 50.0f,  g_id);
+    CAD_AddEntityProperty(kOwner, "wall", "length", "길이", 0, 0.1,  100.0, g_id);
+    CAD_AddEntityProperty(kOwner, "wall", "thick",  "두께", 0, 0.01, 5.0,   g_id);
+    CAD_AddEntityProperty(kOwner, "wall", "height", "높이", 0, 0.1,  50.0,  g_id);
     CAD_SetOnPluginEntityChanged(&onEntityChanged);
 
     std::printf("[QtPlugin] 로드됨 (id=%u, Qt %s)\n", g_id, qVersion());

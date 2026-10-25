@@ -35,14 +35,15 @@ public static class Entry
             }
 
             // UI 는 이름만 등록한다 — 여기엔 WPF 도 ImGui 도 안 쓴다.
-            Cad.CAD_AddUiItem(0, "건축(WPF)", "벽 만들기...", "wallwpf", "", _id);
-            Cad.CAD_AddUiItem(2, "건축(WPF)/벽체", "벽...", "wallwpf", "", _id);
-            Cad.CAD_AddUiItem(3, "건축(WPF)/벽체", "벽...", "wallwpf", "", _id);
+            // 항목 id 는 따로 지울 일이 없으면 버린다(out _) — 언로드 때 엔진이 owner 로 지운다.
+            Cad.CAD_AddUiItem(0, "건축(WPF)", "벽 만들기...", "wallwpf", "", _id, out _);
+            Cad.CAD_AddUiItem(2, "건축(WPF)/벽체", "벽...", "wallwpf", "", _id, out _);
+            Cad.CAD_AddUiItem(3, "건축(WPF)/벽체", "벽...", "wallwpf", "", _id, out _);
 
             // 특성창에서 값을 고칠 수 있게.
-            Cad.CAD_AddEntityProperty(Owner, "wall", "length", "길이", 0, 0.1f, 100.0f, _id);
-            Cad.CAD_AddEntityProperty(Owner, "wall", "thick", "두께", 0, 0.01f, 5.0f, _id);
-            Cad.CAD_AddEntityProperty(Owner, "wall", "height", "높이", 0, 0.1f, 50.0f, _id);
+            Cad.CAD_AddEntityProperty(Owner, "wall", "length", "길이", 0, 0.1, 100.0, _id);
+            Cad.CAD_AddEntityProperty(Owner, "wall", "thick", "두께", 0, 0.01, 5.0, _id);
+            Cad.CAD_AddEntityProperty(Owner, "wall", "height", "높이", 0, 0.1, 50.0, _id);
 
             Console.WriteLine($"[WpfPlugin] 로드됨 (id={_id})");
             return 1;
