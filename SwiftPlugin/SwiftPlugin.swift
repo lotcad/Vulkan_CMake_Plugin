@@ -84,13 +84,13 @@ func makeWall(_ w: Wall) -> UInt32 {
 }
 
 // ── 엔진에서 문자열 받아오기 ─────────────────────────────────────────────────
-// CAD_Get* 계열은 "buf 가 NULL 이면 필요한 길이를 반환한다" 는 규약이다. 두 번 부르면
-// 길이를 넉넉히 잡을 필요가 없다 — 고정 버퍼로 자르는 C++ 예제보다 이쪽이 정확하다.
+// CAD_Get* 계열은 "buf 가 NULL 이면 글자 길이(끝 NUL 은 뺀 바이트 수)를 반환한다" 는 규약이다. 두 번 부르면
+// 길이를 넉넉히 잡을 필요가 없다 — 고정 버퍼로 자르는 C++ 예제보다 이쪽이 정확하다. 칸은 NUL 자리까지 + 1.
 func readString(_ get: (UnsafeMutablePointer<CChar>?, Int32) -> Int32) -> String {
     let need = get(nil, 0)
-    guard need > 1 else { return "" }
-    var buf = [CChar](repeating: 0, count: Int(need))
-    _ = get(&buf, need)
+    guard need > 0 else { return "" }
+    var buf = [CChar](repeating: 0, count: Int(need) + 1)
+    _ = get(&buf, need + 1)
     return String(cString: buf)
 }
 
