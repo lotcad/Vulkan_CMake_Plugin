@@ -110,7 +110,7 @@ final class WallWindowController: NSObject, NSWindowDelegate {
         //    불리고, 그건 엔진 루프의 glfwPollEvents 안이다 — 즉 **엔진 스레드**다.
         //    별도 마샬링이 필요 없는 이유이자, 여기서 스레드를 옮기면 안 되는 이유다.
         makeWall(wall)
-        CAD_RequestZoomExtents()
+        _ = CAD_ZoomExtents()
     }
 
     private func updateReadout() {

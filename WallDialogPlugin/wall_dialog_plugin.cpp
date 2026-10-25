@@ -100,7 +100,7 @@ namespace {
 
         // 딱지를 붙여 두면 저장/열기 뒤에도 벽으로 남고, 특성창에서 값을 고칠 수 있다.
         CAD_SetPluginTag(id, kOwner, "wall", encode(g_last).c_str());
-        CAD_RequestZoomExtents();
+        CAD_ZoomExtents();
     }
 
     // 특성창에서 값이 바뀌면 형상을 다시 만든다(재생성).

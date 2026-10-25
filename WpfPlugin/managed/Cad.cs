@@ -57,5 +57,5 @@ internal static partial class Cad
 
     // ── 뷰 ──
     [LibraryImport(Dll)]
-    internal static partial void CAD_RequestZoomExtents();
+    internal static partial int CAD_ZoomExtents();   // 0 = CAD_OK(다음 틱에 적용)
 }

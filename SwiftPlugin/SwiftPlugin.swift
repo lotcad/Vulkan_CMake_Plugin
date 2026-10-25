@@ -123,7 +123,7 @@ func rebuild(_ id: UInt32, _ w: Wall) -> Bool {
 
 func onWall(_ user: UnsafeMutableRawPointer?) {
     makeWall(Wall())
-    CAD_RequestZoomExtents()
+    _ = CAD_ZoomExtents()
 }
 
 func onWallThick(_ user: UnsafeMutableRawPointer?) {

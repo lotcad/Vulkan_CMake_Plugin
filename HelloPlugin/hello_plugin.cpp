@@ -70,7 +70,7 @@ namespace {
     // ── 명령 ──────────────────────────────────────────────────────────────
     void onWall(void*) {
         makeWall(Wall{});
-        CAD_RequestZoomExtents();
+        CAD_ZoomExtents();
     }
 
     void onTower(void*) {
@@ -78,7 +78,7 @@ namespace {
             uint32_t id = 0;
             CAD_CreateBox(CAD_GeVec3{0.0, 0.0, i * 1.1}, CAD_GeVec3{1.0, 1.0, 1.0}, nullptr, &id);
         }
-        CAD_RequestZoomExtents();
+        CAD_ZoomExtents();
     }
 
     // 선택된 벽들의 두께를 두 배로 — **재생성** 경로. 딱지의 정의를 바꾸고 형상을 다시 만든다.

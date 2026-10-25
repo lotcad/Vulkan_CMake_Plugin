@@ -78,7 +78,7 @@ public static class Entry
             if (Cad.CAD_CreateMesh(xyz, (uint)(xyz.Length / 3), idx, (uint)idx.Length, 0, 0, out uint id) != 0 || id == 0) return;
 
             Cad.CAD_SetPluginTag(id, Owner, "wall", Encode(_length, _thick, _height));
-            Cad.CAD_RequestZoomExtents();
+            Cad.CAD_ZoomExtents();
         }
         catch (Exception e)
         {
