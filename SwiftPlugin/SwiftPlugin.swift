@@ -52,11 +52,13 @@ func decode(_ s: String) -> Wall? {
 }
 
 // 상자 8정점 12삼각형. 법선은 nil 로 넘겨 엔진이 삼각형별 flat 법선을 만들게 한다.
-func buildWallMesh(_ w: Wall) -> (xyz: [Float], idx: [UInt32]) {
-    let L = w.length, T = w.thick, H = w.height
-    let xyz: [Float] = [
-        0, 0, 0,  L, 0, 0,  L, T, 0,  0, T, 0,
-        0, 0, H,  L, 0, H,  L, T, H,  0, T, H,
+// 점은 벽 자기 좌표 — 처음 만들 땐 월드와 같고, 다시 만들 땐(CAD_ReplaceMesh) 사용자가 옮긴 자리 위에 얹힌다.
+func buildWallMesh(_ w: Wall) -> (xyz: [CAD_GeVec3], idx: [UInt32]) {
+    let L = Double(w.length), T = Double(w.thick), H = Double(w.height)
+    let p = { (x: Double, y: Double, z: Double) in CAD_GeVec3(x: x, y: y, z: z) }
+    let xyz: [CAD_GeVec3] = [
+        p(0, 0, 0), p(L, 0, 0), p(L, T, 0), p(0, T, 0),
+        p(0, 0, H), p(L, 0, H), p(L, T, H), p(0, T, H),
     ]
     let idx: [UInt32] = [
         0, 2, 1,  0, 3, 2,   // 바닥
@@ -74,8 +76,10 @@ func buildWallMesh(_ w: Wall) -> (xyz: [Float], idx: [UInt32]) {
 func makeWall(_ w: Wall) -> UInt32 {
     let m = buildWallMesh(w)
     // Swift 배열은 호출 동안 UnsafePointer 로 자동 브리징된다 — withUnsafeBufferPointer 불필요.
-    let id = CAD_CreateMesh(m.xyz, UInt32(m.xyz.count / 3), m.idx, UInt32(m.idx.count), nil)
-    if id != 0 { CAD_SetPluginTag(id, owner, "wall", encode(w)) }
+    var id: UInt32 = 0
+    if CAD_CreateMesh(m.xyz, UInt32(m.xyz.count), m.idx, UInt32(m.idx.count), nil, nil, &id) == 0, id != 0 {   // 0 = CAD_OK
+        CAD_SetPluginTag(id, owner, "wall", encode(w))
+    }
     return id
 }
 
@@ -107,7 +111,7 @@ func selectedWalls() -> [(id: UInt32, wall: Wall)] {
 @discardableResult
 func rebuild(_ id: UInt32, _ w: Wall) -> Bool {
     let m = buildWallMesh(w)
-    guard CAD_ReplaceMesh(id, m.xyz, UInt32(m.xyz.count / 3), m.idx, UInt32(m.idx.count), nil)
+    guard CAD_ReplaceMesh(id, m.xyz, UInt32(m.xyz.count), m.idx, UInt32(m.idx.count), nil) == 0   // 0 = CAD_OK
     else { return false }
     CAD_SetPluginTag(id, owner, "wall", encode(w))
     return true
@@ -167,7 +171,7 @@ func onEntityChanged(_ id: UInt32,
           String(cString: owner_) == owner, String(cString: type) == "wall",
           let w = decode(String(cString: data)) else { return }
     let m = buildWallMesh(w)
-    CAD_ReplaceMesh(id, m.xyz, UInt32(m.xyz.count / 3), m.idx, UInt32(m.idx.count), nil)
+    _ = CAD_ReplaceMesh(id, m.xyz, UInt32(m.xyz.count), m.idx, UInt32(m.idx.count), nil)
 }
 
 // .lot 을 열어 우리 딱지가 붙은 객체가 복원됐을 때. 형상은 이미 엔진이 올렸고,

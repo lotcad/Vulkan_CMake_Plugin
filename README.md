@@ -101,14 +101,16 @@ CMake 로 지으면 **찾을 수 있는 곳 전부에 자동으로 복사**합�
 새 객체 종류를 만들지 않습니다. **엔진에는 평범한 메시**를 주고, 거기에 **딱지**를 붙입니다.
 
 ```cpp
-id = CAD_CreateMesh(xyz, nVerts, idx, nIdx, NULL);      // 형상 (법선 NULL = flat)
+uint32_t id = 0;
+CAD_CreateMesh(pts, nPts, idx, nIdx, NULL, NULL, &id);  // 형상 — pts 는 CAD_GeVec3(월드), 법선 NULL = flat
 CAD_SetPluginTag(id, "HelloPlugin", "wall", "{...}");   // 정의는 플러그인만 해석
 ```
 
 객체가 메시라서 그리기·선택·이동·저장·내보내기가 전부 그대로 됩니다.
 
 **값이 바뀌면 형상을 다시 만듭니다.** `wallthick` 명령이 그 예입니다 — 딱지의 두께를
-두 배로 바꾸고 `CAD_ReplaceMesh` 로 형상만 교체합니다. 위치·색·딱지는 그대로입니다.
+두 배로 바꾸고 `CAD_ReplaceMesh` 로 형상만 교체합니다. `CAD_ReplaceMesh` 의 점은 **객체 자기 좌표**라
+사용자가 옮긴·돌린 자리, 색, 딱지는 그대로입니다(처음 만든 객체는 자기 좌표 = 월드).
 
 **`.lot` 을 열면 엔진이 알려줍니다.** `CAD_SetOnPluginEntityLoaded` 콜백으로 owner/type/data 가
 오고, 자기 것이면 정의를 읽어 살아 있는 엔티티로 넘겨받습니다. 이 플러그인이 없는 PC 에서

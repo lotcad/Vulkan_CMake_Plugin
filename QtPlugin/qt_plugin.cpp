@@ -66,13 +66,11 @@ namespace {
     }
 
     // 상자 8정점 12삼각형. 법선은 NULL 로 넘겨 엔진이 삼각형별 flat 법선을 만들게 한다.
-    void buildWallMesh(const Wall& w, std::vector<float>& xyz, std::vector<unsigned int>& idx) {
-        const float L = static_cast<float>(w.length);
-        const float T = static_cast<float>(w.thick);
-        const float H = static_cast<float>(w.height);
-        const float v[8][3] = { {0,0,0},{L,0,0},{L,T,0},{0,T,0}, {0,0,H},{L,0,H},{L,T,H},{0,T,H} };
-        xyz.assign(&v[0][0], &v[0][0] + 24);
-        static const unsigned int tri[36] = {
+    // 점은 벽 자기 좌표 — 처음 만들 땐 월드와 같고, 다시 만들 땐(CAD_ReplaceMesh) 사용자가 옮긴 자리 위에 얹힌다.
+    void buildWallMesh(const Wall& w, std::vector<CAD_GeVec3>& xyz, std::vector<uint32_t>& idx) {
+        const double L = w.length, T = w.thick, H = w.height;
+        xyz = { {0,0,0},{L,0,0},{L,T,0},{0,T,0}, {0,0,H},{L,0,H},{L,T,H},{0,T,H} };
+        static const uint32_t tri[36] = {
             0,2,1, 0,3,2,   4,5,6, 4,6,7,
             0,1,5, 0,5,4,   1,2,6, 1,6,5,
             2,3,7, 2,7,6,   3,0,4, 3,4,7 };
@@ -80,12 +78,11 @@ namespace {
     }
 
     void createWall(const Wall& w) {
-        std::vector<float> xyz; std::vector<unsigned int> idx;
+        std::vector<CAD_GeVec3> xyz; std::vector<uint32_t> idx;
         buildWallMesh(w, xyz, idx);
-        const unsigned int id = CAD_CreateMesh(
-            xyz.data(), static_cast<unsigned int>(xyz.size() / 3),
-            idx.data(), static_cast<unsigned int>(idx.size()), nullptr);
-        if (!id) return;
+        uint32_t id = 0;
+        if (CAD_CreateMesh(xyz.data(), static_cast<uint32_t>(xyz.size()), idx.data(), static_cast<uint32_t>(idx.size()),
+                           nullptr, nullptr, &id) != CAD_OK) return;
         // 딱지를 붙여 두면 저장/열기 뒤에도 벽으로 남고, 특성창에서 값을 고칠 수 있다.
         CAD_SetPluginTag(id, kOwner, "wall", encode(w).c_str());
         CAD_RequestZoomExtents();
@@ -246,10 +243,9 @@ namespace {
         if (std::strcmp(owner, kOwner) != 0 || std::strcmp(type, "wall") != 0) return;
         Wall w;
         if (!decode(data, w)) return;
-        std::vector<float> xyz; std::vector<unsigned int> idx;
+        std::vector<CAD_GeVec3> xyz; std::vector<uint32_t> idx;
         buildWallMesh(w, xyz, idx);
-        CAD_ReplaceMesh(id, xyz.data(), static_cast<unsigned int>(xyz.size() / 3),
-                        idx.data(), static_cast<unsigned int>(idx.size()), nullptr);
+        CAD_ReplaceMesh(id, xyz.data(), static_cast<uint32_t>(xyz.size()), idx.data(), static_cast<uint32_t>(idx.size()), nullptr);
     }
 
 }  // namespace

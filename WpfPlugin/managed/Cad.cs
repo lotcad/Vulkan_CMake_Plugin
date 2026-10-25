@@ -40,15 +40,16 @@ internal static partial class Cad
     internal static partial void CAD_SetOnPluginEntityChanged(nint cb);
 
     // ── 형상 ──
-    // normals 가 0 이면 엔진이 삼각형별 flat 법선을 만든다.
+    // 점은 CAD_GeVec3(double x,y,z) 배열 — double[] 에 점마다 3개씩 넣으면 같은 배치다. pointCount = 점 개수.
+    // normals·opt 가 0 이면 삼각형별 flat 법선·기본 선택. 반환 0 = CAD_OK.
     [LibraryImport(Dll)]
-    internal static partial uint CAD_CreateMesh(
-        [In] float[] xyz, uint vertexCount, [In] uint[] indices, uint indexCount, nint normals);
+    internal static partial int CAD_CreateMesh(
+        [In] double[] points, uint pointCount, [In] uint[] indices, uint indexCount, nint normals, nint opt, out uint outId);
 
+    // 점은 객체 자기 좌표(사용자가 옮긴 자리 위에 얹힘). 반환 0 = CAD_OK.
     [LibraryImport(Dll)]
-    [return: MarshalAs(UnmanagedType.I1)]
-    internal static partial bool CAD_ReplaceMesh(
-        uint id, [In] float[] xyz, uint vertexCount, [In] uint[] indices, uint indexCount, nint normals);
+    internal static partial int CAD_ReplaceMesh(
+        uint id, [In] double[] points, uint pointCount, [In] uint[] indices, uint indexCount, nint normals);
 
     [LibraryImport(Dll, StringMarshalling = StringMarshalling.Utf8)]
     [return: MarshalAs(UnmanagedType.I1)]

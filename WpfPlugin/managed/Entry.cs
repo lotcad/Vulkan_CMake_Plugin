@@ -75,8 +75,7 @@ public static class Entry
             if (!ShowDialogOnStaThread()) return;   // 취소
 
             var (xyz, idx) = BuildWallMesh(_length, _thick, _height);
-            uint id = Cad.CAD_CreateMesh(xyz, (uint)(xyz.Length / 3), idx, (uint)idx.Length, 0);
-            if (id == 0) return;
+            if (Cad.CAD_CreateMesh(xyz, (uint)(xyz.Length / 3), idx, (uint)idx.Length, 0, 0, out uint id) != 0 || id == 0) return;
 
             Cad.CAD_SetPluginTag(id, Owner, "wall", Encode(_length, _thick, _height));
             Cad.CAD_RequestZoomExtents();
@@ -166,10 +165,11 @@ public static class Entry
     }
 
     // 상자 8정점 12삼각형. 법선은 넘기지 않는다 — 엔진이 삼각형별 flat 법선을 만든다.
-    private static (float[] xyz, uint[] idx) BuildWallMesh(double length, double thick, double height)
+    // 점은 벽 자기 좌표(double 3개씩 = CAD_GeVec3) — 처음 만들 땐 월드와 같고, 다시 만들 땐 사용자가 옮긴 자리 위에 얹힌다.
+    private static (double[] xyz, uint[] idx) BuildWallMesh(double length, double thick, double height)
     {
-        float L = (float)length, T = (float)thick, H = (float)height;
-        float[] xyz =
+        double L = length, T = thick, H = height;
+        double[] xyz =
         {
             0,0,0,  L,0,0,  L,T,0,  0,T,0,
             0,0,H,  L,0,H,  L,T,H,  0,T,H,
