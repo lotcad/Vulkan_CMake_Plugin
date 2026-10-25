@@ -146,11 +146,13 @@ ImGui 도 호스트 종류도 상관없습니다 — `WallDialogPlugin`(MFC)과 
 ## 이벤트
 
 ```cpp
-CAD_AddEventListener(1 | 2, &onEvent, nullptr, id);   // 1=생성 2=삭제 4=선택 8=문서변경
+uint32_t h = 0;   // 구독 핸들(직접 뗄 때 CAD_RemoveEventListener(h)) — 결과 코드 CAD_OK 면 채워진다
+CAD_AddEventListener(CAD_EVENT_OBJECT_CREATED | CAD_EVENT_OBJECT_DELETED, &onEvent, nullptr, id, &h);
+// CAD_EVENT_*: 생성·삭제·선택·문서 변경·명령 시작·끝·취소
 ```
 
-`CAD_SetOnObjectCreated` 같은 단일 슬롯은 **쓰지 마세요.** 호스트가 걸어 둔 것을
-덮어씁니다. 플러그인은 여러 개가 동시에 올라오므로 목록형인 위쪽을 씁니다.
+목록형이라 호스트·여러 플러그인이 같이 구독해도 서로 덮어쓰지 않습니다(예전 한 칸짜리
+`CAD_SetOnObjectCreated` 류는 엔진 0.1 의 C API 정리 때 지웠습니다). 언로드 때는 엔진이 플러그인 ID 로 묶어 지웁니다.
 
 ## 예제 셋
 

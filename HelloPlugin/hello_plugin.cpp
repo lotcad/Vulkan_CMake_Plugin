@@ -123,7 +123,7 @@ namespace {
     }
 
     // 엔진 이벤트 — 여러 플러그인이 동시에 구독할 수 있는 목록형이다.
-    // (CAD_SetOnObjectCreated 같은 단일 슬롯은 호스트 것을 덮어써서 플러그인이 쓰면 안 된다)
+    // (호스트도 같은 목록으로 구독한다 — 서로 덮어쓰지 않는다)
     void onEngineEvent(int kind, unsigned int id, void*) {
         if (kind == 1) std::printf("[HelloPlugin] 객체 생성 id=%u\n", id);
         else if (kind == 2) std::printf("[HelloPlugin] 객체 삭제 id=%u\n", id);
@@ -185,7 +185,8 @@ LOT_PLUGIN_ABI_EXPORT bool CAD_PluginLoad(unsigned int pluginId) {
     // 값이 바뀌면 형상을 다시 만든다.
     CAD_SetOnPluginEntityChanged(&onEntityChanged);
     // 객체 생성/삭제 구독 (1|2). 언로드 때는 엔진이 pluginId 로 묶어 알아서 지운다.
-    CAD_AddEventListener(1 | 2, &onEngineEvent, nullptr, g_id);
+    uint32_t listener = 0;   // 핸들 — 직접 뗄 일이 없으면 버려도 된다
+    CAD_AddEventListener(CAD_EVENT_OBJECT_CREATED | CAD_EVENT_OBJECT_DELETED, &onEngineEvent, nullptr, g_id, &listener);
 
     std::printf("[HelloPlugin] 로드됨 (id=%u)\n", g_id);
     return true;

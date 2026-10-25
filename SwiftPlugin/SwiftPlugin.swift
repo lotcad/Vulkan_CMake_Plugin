@@ -232,10 +232,11 @@ public func pluginLoad(_ id: UInt32) -> Bool {
     CAD_SetOnPluginEntityLoaded(onEntityLoaded)
     CAD_SetOnPluginEntityChanged(onEntityChanged)
 
-    // 목록형 구독을 쓴다 — CAD_SetOnObjectCreated 같은 단일 슬롯은 호스트 것을 덮어쓴다.
+    // 목록형 구독 — 호스트·다른 플러그인과 서로 덮어쓰지 않는다. 핸들은 언로드 때 엔진이 pluginId 로 지운다.
     let counter = Unmanaged.passRetained(Counter())
     counterRef = counter
-    CAD_AddEventListener(1 | 2, onEngineEvent, counter.toOpaque(), id)
+    var listener: UInt32 = 0
+    _ = CAD_AddEventListener(1 | 2, onEngineEvent, counter.toOpaque(), id, &listener)
 
     print("[SwiftPlugin] 로드됨 (id=\(id), Swift \(swiftVersionString()))")
     return true
