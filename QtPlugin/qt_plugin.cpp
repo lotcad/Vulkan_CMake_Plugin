@@ -264,7 +264,7 @@ LOT_PLUGIN_ABI_EXPORT bool CAD_PluginLoad(unsigned int pluginId) {
     //    쓰지도 않을 Qt 를 그때 올리면 시작이 느려지고 플랫폼 플러그인이 없는
     //    환경에서는 **엔진 자체가** 못 뜬다. 명령을 처음 부를 때 만든다(지연 초기화).
 
-    if (!CAD_RegisterCommand("qwall", "벽 만들기(Qt)", &onWallDialog, nullptr, g_id))
+    if (CAD_RegisterCommand("qwall", "벽 만들기(Qt)", &onWallDialog, nullptr, g_id) != CAD_OK)
         return false;
 
     // UI 는 이름만 등록한다 — 여기엔 ImGui 도 Qt 도 안 쓴다.

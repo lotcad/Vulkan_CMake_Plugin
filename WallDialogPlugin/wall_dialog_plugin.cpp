@@ -132,7 +132,7 @@ LOT_PLUGIN_ABI_EXPORT bool CAD_PluginLoad(unsigned int pluginId) {
     AFX_MANAGE_STATE(AfxGetStaticModuleState());
     g_id = pluginId;
 
-    if (!CAD_RegisterCommand("walldlg", "벽 만들기(대화상자)", &onWallDialog, nullptr, g_id))
+    if (CAD_RegisterCommand("walldlg", "벽 만들기(대화상자)", &onWallDialog, nullptr, g_id) != CAD_OK)
         return false;
 
     // UI 는 이름만 등록한다 — 여기엔 ImGui 도 MFC 도 안 쓴다.

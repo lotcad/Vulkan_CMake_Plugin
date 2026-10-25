@@ -17,9 +17,9 @@ internal static partial class Cad
 
     // ── 명령 등록 ──
     // fn 은 C 함수 포인터다. C# 에선 [UnmanagedCallersOnly] 정적 메서드의 주소를 넘긴다.
+    // 반환 0 = CAD_OK, 같은 이름·엔진 기본 명령 이름이면 CAD_E_DUPLICATE(음수).
     [LibraryImport(Dll, StringMarshalling = StringMarshalling.Utf8)]
-    [return: MarshalAs(UnmanagedType.I1)]
-    internal static partial bool CAD_RegisterCommand(
+    internal static partial int CAD_RegisterCommand(
         string name, string title, nint fn, nint user, uint owner);
 
     // ── UI 등록 ──

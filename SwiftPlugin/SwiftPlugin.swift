@@ -97,9 +97,13 @@ func readString(_ get: (UnsafeMutablePointer<CChar>?, Int32) -> Int32) -> String
 // 선택된 객체들 중 우리 벽만.
 func selectedWalls() -> [(id: UInt32, wall: Wall)] {
     var out: [(UInt32, Wall)] = []
-    for i in 0 ..< CAD_GetSelectedCount() {
-        var id: UInt32 = 0
-        guard CAD_GetSelectedObjectId(i, &id), CAD_HasPluginTag(id) else { continue }
+    // 개수만 먼저 묻고(NULL, 0) 그만큼 칸을 잡아 한 번에 받는다.
+    let n = CAD_GetSelection(nil, 0)
+    guard n > 0 else { return out }
+    var ids = [UInt32](repeating: 0, count: Int(n))
+    let got = Int(max(0, min(n, CAD_GetSelection(&ids, UInt32(n)))))
+    for id in ids.prefix(got) {
+        guard CAD_HasPluginTag(id) else { continue }
         guard readString({ CAD_GetPluginTagType(id, $0, $1) }) == "wall" else { continue }
         guard let w = decode(readString({ CAD_GetPluginTagData(id, $0, $1) })) else { continue }
         out.append((id, w))
@@ -205,8 +209,8 @@ public func pluginLoad(_ id: UInt32) -> Bool {
     //    문자열 리터럴(정적 수명)이라 이 차이가 드러나지 않는다. 확인해 보면 엔진은
     //    경계에서 전부 std::string 으로 복사한다(RegisteredCommand::name, UiItem::path …).
     //    C API 를 새로 쓸 때 이 규약을 깨면 Swift/C# 플러그인이 먼저 죽는다.
-    guard CAD_RegisterCommand("swall", "벽 만들기(Swift)", onWall, nil, id),
-          CAD_RegisterCommand("swallthick", "벽 두께 x2(Swift)", onWallThick, nil, id)
+    guard CAD_RegisterCommand("swall", "벽 만들기(Swift)", onWall, nil, id) == 0,   // 0 = CAD_OK
+          CAD_RegisterCommand("swallthick", "벽 두께 x2(Swift)", onWallThick, nil, id) == 0
     else { return false }
 
     CAD_AddUiItem(0, "건축(Swift)", "벽 만들기", "swall", "", id)

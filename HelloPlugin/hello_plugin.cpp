@@ -84,9 +84,13 @@ namespace {
     // 선택된 벽들의 두께를 두 배로 — **재생성** 경로. 딱지의 정의를 바꾸고 형상을 다시 만든다.
     // 엔진 입장에선 메시 교체일 뿐이고, 딱지·위치·색은 그대로다.
     void onWallThick(void*) {
-        const unsigned int n = CAD_GetSelectedCount();
-        std::vector<unsigned int> ids;
-        for (unsigned int i = 0; i < n; ++i) { unsigned int sid = 0; if (CAD_GetSelectedObjectId(i, &sid)) ids.push_back(sid); }
+        const int32_t n = CAD_GetSelection(nullptr, 0);   // 개수만 먼저
+        std::vector<uint32_t> ids(n > 0 ? static_cast<size_t>(n) : 0);
+        if (!ids.empty()) {
+            const int32_t got = CAD_GetSelection(ids.data(), static_cast<uint32_t>(ids.size()));
+            if (got < 0) ids.clear();
+            else if (static_cast<size_t>(got) < ids.size()) ids.resize(static_cast<size_t>(got));
+        }
         int changed = 0;
         for (unsigned int id : ids) {
             char type[32] = {}, data[128] = {};
@@ -145,9 +149,9 @@ LOT_PLUGIN_ABI_EXPORT unsigned int CAD_PluginAbiVersion(void) {
 LOT_PLUGIN_ABI_EXPORT bool CAD_PluginLoad(unsigned int pluginId) {
     g_id = pluginId;
 
-    if (!CAD_RegisterCommand("wall",      "벽 만들기",   &onWall,      nullptr, g_id)) return false;
-    if (!CAD_RegisterCommand("tower",     "탑 쌓기",     &onTower,     nullptr, g_id)) return false;
-    if (!CAD_RegisterCommand("wallthick", "벽 두께 x2",  &onWallThick, nullptr, g_id)) return false;
+    if (CAD_RegisterCommand("wall",      "벽 만들기",   &onWall,      nullptr, g_id) != CAD_OK) return false;
+    if (CAD_RegisterCommand("tower",     "탑 쌓기",     &onTower,     nullptr, g_id) != CAD_OK) return false;
+    if (CAD_RegisterCommand("wallthick", "벽 두께 x2",  &onWallThick, nullptr, g_id) != CAD_OK) return false;
 
     CAD_AddUiItem(0, "건축", "벽 만들기",  "wall",      "", g_id);
     CAD_AddUiItem(0, "건축", "벽 두께 x2", "wallthick", "", g_id);
