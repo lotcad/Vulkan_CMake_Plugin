@@ -73,8 +73,10 @@ namespace {
     }
 
     void onTower(void*) {
-        for (int i = 0; i < 5; ++i)
-            CAD_CreateBox(0.0f, 0.0f, static_cast<float>(i) * 1.1f, 1.0f, 1.0f, 1.0f);
+        for (int i = 0; i < 5; ++i) {   // 만들기 = 결과 코드 + 새 id(여기선 id 를 안 씀)
+            uint32_t id = 0;
+            CAD_CreateBox(CAD_GeVec3{0.0, 0.0, i * 1.1}, CAD_GeVec3{1.0, 1.0, 1.0}, nullptr, &id);
+        }
         CAD_RequestZoomExtents();
     }
 
